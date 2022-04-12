@@ -1,0 +1,11 @@
+[package]
+edition = "2021"
+name = "lockfree"
+version = "0.1.0"
+description = "This crate provides concurrent data structures."
+repository = "https://gitlab.com/gelfand/lockfree"
+keywords = ["concurrency", "lock-free", "atomics", "data-structures"]
+categories = ["concurrency", "data-structures", "algorithms"]
+
+[dependencies]
+crossbeam = { version = "0.8.1", features = ["nightly"] }

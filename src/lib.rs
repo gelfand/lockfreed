@@ -12,4 +12,5 @@
     inline_const
 )]
 
+pub mod queue;
 pub mod stack;

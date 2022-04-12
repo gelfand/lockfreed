@@ -1,13 +1,17 @@
 extern crate crossbeam;
+#[allow(deprecated)]
 use crossbeam::{
-    epoch::{self, Atomic, Owned},
+    epoch::{self, Atomic, CompareAndSetOrdering, Owned},
     utils::CachePadded,
 };
-use std::{ptr::NonNull, sync::atomic::Ordering};
+use std::{
+    ptr::{self},
+    sync::atomic::Ordering,
+};
 
 #[derive(Debug)]
 pub struct Stack<T> {
-    top: Atomic<Node<T>>,
+    top: Atomic<CachePadded<Node<T>>>,
 }
 
 impl<T> Stack<T> {
@@ -17,47 +21,55 @@ impl<T> Stack<T> {
         }
     }
     pub fn push(&self, val: T) {
-        let _guard = epoch::pin();
-
-        let mut ptr = self.top.load(Ordering::Acquire, &_guard);
-        let mut new = Owned::new(Node {
+        let mut n = Owned::new(CachePadded::new(Node {
             val,
-            next: ptr.as_raw() as *mut _,
-        });
+            next: Atomic::null(),
+        }));
+        let g = epoch::pin();
+
         loop {
-            match self
-                .top
-                .compare_exchange(ptr, new, Ordering::AcqRel, Ordering::Acquire, &_guard)
-            {
+            let ptr = self.top.load(Ordering::Relaxed, &g);
+            n.next.store(ptr, Ordering::Relaxed);
+            #[allow(deprecated)]
+            match self.top.compare_exchange(
+                ptr,
+                n,
+                Ordering::Release.success(),
+                Ordering::Release.failure(),
+                &g,
+            ) {
                 Ok(_) => break,
-                Err(next) => {
-                    ptr = next.current;
-                    new = Owned::new(Node {
-                        val: unsafe { next.new.into_shared(&_guard).as_raw().read().val },
-                        next: next.current.as_raw() as *mut _,
-                    });
-                }
+                Err(e) => n = e.new,
             }
         }
     }
 
+    #[allow(deprecated)]
     pub fn pop(&self) -> Option<T> {
-        let _g = epoch::pin();
-        let mut top = self.top.load(Ordering::Acquire, &_g);
-        let mut next = unsafe {
-            Owned::from_raw(NonNull::new(top.as_raw().read().next)?.as_ptr() as *mut Node<T>)
-        };
+        let g = epoch::pin();
         loop {
-            match self
-                .top
-                .compare_exchange(top, next, Ordering::AcqRel, Ordering::Acquire, &_g)
-            {
-                Ok(v) => break Some(unsafe { v.as_raw().read().val }),
-                Err(new_top) => {
-                    top = new_top.current;
-                    next =
-                        unsafe { Owned::from_raw(new_top.current.as_raw().read().next as *mut _) };
+            let ptr = self.top.load(Ordering::Acquire, &g);
+            match unsafe { ptr.as_ref() } {
+                Some(head) => {
+                    let next = head.next.load(Ordering::Relaxed, &g);
+                    if self
+                        .top
+                        .compare_exchange(
+                            ptr,
+                            next,
+                            Ordering::Release.success(),
+                            Ordering::Release.failure(),
+                            &g,
+                        )
+                        .is_ok()
+                    {
+                        unsafe {
+                            g.defer_unchecked(move || ptr.into_owned());
+                            return Some(ptr::read(&(*head).val));
+                        }
+                    }
                 }
+                None => return None,
             }
         }
     }
@@ -72,5 +84,21 @@ impl<T> const Default for Stack<T> {
 #[derive(Debug)]
 pub struct Node<T> {
     val: T,
-    next: *mut CachePadded<Node<T>>,
+    next: Atomic<CachePadded<Node<T>>>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_stack() {
+        let s = Stack::new();
+        s.push(1);
+        s.push(2);
+        s.push(3);
+        assert_eq!(s.pop(), Some(3));
+        assert_eq!(s.pop(), Some(2));
+        assert_eq!(s.pop(), Some(1));
+        assert_eq!(s.pop(), None);
+    }
 }

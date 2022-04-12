@@ -9,3 +9,7 @@ categories = ["concurrency", "data-structures", "algorithms"]
 
 [dependencies]
 crossbeam = { version = "0.8.1", features = ["nightly"] }
+hashbrown = { git = "https://github.com/rust-lang/hashbrown", features = [
+    "nightly",
+    "raw",
+] }

@@ -28,8 +28,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 [[package]]
 name = "crossbeam"
 version = "0.8.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ae5588f6b3c3cb05239e90bd110f257254aecd01e4635400391aeae07497845"
+source = "git+https://github.com/crossbeam-rs/crossbeam#df9b0c90ec09e458e321ab8ad2a4ab92ad3eb20d"
 dependencies = [
  "cfg-if",
  "crossbeam-channel",
@@ -42,8 +41,7 @@ dependencies = [
 [[package]]
 name = "crossbeam-channel"
 version = "0.5.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5aaa7bd5fb665c6864b5f963dd9097905c54125909c7aa94c9e18507cdbe6c53"
+source = "git+https://github.com/crossbeam-rs/crossbeam#df9b0c90ec09e458e321ab8ad2a4ab92ad3eb20d"
 dependencies = [
  "cfg-if",
  "crossbeam-utils",
@@ -52,8 +50,7 @@ dependencies = [
 [[package]]
 name = "crossbeam-deque"
 version = "0.8.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6455c0ca19f0d2fbf751b908d5c55c1f5cbc65e03c4225427254b46890bdde1e"
+source = "git+https://github.com/crossbeam-rs/crossbeam#df9b0c90ec09e458e321ab8ad2a4ab92ad3eb20d"
 dependencies = [
  "cfg-if",
  "crossbeam-epoch",
@@ -63,8 +60,7 @@ dependencies = [
 [[package]]
 name = "crossbeam-epoch"
 version = "0.9.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1145cf131a2c6ba0615079ab6a638f7e1973ac9c2634fcbeaaad6114246efe8c"
+source = "git+https://github.com/crossbeam-rs/crossbeam#df9b0c90ec09e458e321ab8ad2a4ab92ad3eb20d"
 dependencies = [
  "autocfg",
  "cfg-if",
@@ -77,18 +73,27 @@ dependencies = [
 [[package]]
 name = "crossbeam-queue"
 version = "0.3.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f25d8400f4a7a5778f0e4e52384a48cbd9b5c495d110786187fc750075277a2"
+source = "git+https://github.com/crossbeam-rs/crossbeam#df9b0c90ec09e458e321ab8ad2a4ab92ad3eb20d"
 dependencies = [
  "cfg-if",
  "crossbeam-utils",
 ]
 
 [[package]]
+name = "crossbeam-skiplist"
+version = "0.0.0"
+source = "git+https://github.com/crossbeam-rs/crossbeam#df9b0c90ec09e458e321ab8ad2a4ab92ad3eb20d"
+dependencies = [
+ "cfg-if",
+ "crossbeam-epoch",
+ "crossbeam-utils",
+ "scopeguard",
+]
+
+[[package]]
 name = "crossbeam-utils"
 version = "0.8.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0bf124c720b7686e3c2663cf54062ab0f68a88af2fb6a030e87e30bf721fcb38"
+source = "git+https://github.com/crossbeam-rs/crossbeam#df9b0c90ec09e458e321ab8ad2a4ab92ad3eb20d"
 dependencies = [
  "cfg-if",
  "lazy_static",
@@ -130,6 +135,7 @@ name = "lockfree"
 version = "0.1.0"
 dependencies = [
  "crossbeam",
+ "crossbeam-skiplist",
  "hashbrown",
 ]
 

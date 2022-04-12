@@ -1,13 +1,9 @@
 extern crate crossbeam;
-#[allow(deprecated)]
 use crossbeam::{
-    epoch::{self, Atomic, CompareAndSetOrdering, Owned},
+    epoch::{self, Atomic, Owned},
     utils::CachePadded,
 };
-use std::{
-    ptr::{self},
-    sync::atomic::Ordering,
-};
+use std::{ptr, sync::atomic::Ordering};
 
 #[derive(Debug)]
 pub struct Stack<T> {
@@ -30,14 +26,10 @@ impl<T> Stack<T> {
         loop {
             let ptr = self.top.load(Ordering::Relaxed, &g);
             n.next.store(ptr, Ordering::Relaxed);
-            #[allow(deprecated)]
-            match self.top.compare_exchange(
-                ptr,
-                n,
-                Ordering::Release.success(),
-                Ordering::Release.failure(),
-                &g,
-            ) {
+            match self
+                .top
+                .compare_exchange(ptr, n, Ordering::Release, Ordering::Relaxed, &g)
+            {
                 Ok(_) => break,
                 Err(e) => n = e.new,
             }
@@ -54,13 +46,7 @@ impl<T> Stack<T> {
                     let next = head.next.load(Ordering::Relaxed, &g);
                     if self
                         .top
-                        .compare_exchange(
-                            ptr,
-                            next,
-                            Ordering::Release.success(),
-                            Ordering::Release.failure(),
-                            &g,
-                        )
+                        .compare_exchange(ptr, next, Ordering::Release, Ordering::Relaxed, &g)
                         .is_ok()
                     {
                         unsafe {

@@ -8,7 +8,10 @@ keywords = ["concurrency", "lock-free", "atomics", "data-structures"]
 categories = ["concurrency", "data-structures", "algorithms"]
 
 [dependencies]
-crossbeam = { version = "0.8.1", features = ["nightly"] }
+crossbeam = { git = "https://github.com/crossbeam-rs/crossbeam", features = [
+    "nightly",
+] }
+crossbeam-skiplist = { git = "https://github.com/crossbeam-rs/crossbeam" }
 hashbrown = { git = "https://github.com/rust-lang/hashbrown", features = [
     "nightly",
     "raw",

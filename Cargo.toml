@@ -12,4 +12,8 @@ crossbeam = { git = "https://github.com/crossbeam-rs/crossbeam", features = [
     "nightly",
 ] }
 
-
+[features]
+default = ["nightly"]
+nightly = []
+std = []
+alloc = []

@@ -1,4 +1,3 @@
-extern crate alloc;
 extern crate crossbeam;
 use core::{ptr, sync::atomic::AtomicUsize, sync::atomic::Ordering};
 use crossbeam::{
@@ -25,7 +24,17 @@ impl<T> Stack<T> {
     /// ```
     ///
     #[inline(always)]
+    #[cfg(feature = "nightly")]
     pub const fn new() -> Self {
+        Self {
+            top: Atomic::null(),
+            size: Default::default(),
+        }
+    }
+
+    #[inline(always)]
+    #[cfg(not(feature = "nightly"))]
+    pub fn new() -> Self {
         Self {
             top: Atomic::null(),
             size: Default::default(),
@@ -46,10 +55,12 @@ impl<T> Stack<T> {
     #[inline(always)]
     pub fn push(&self, val: T) {
         self.size.fetch_add(1, Ordering::Relaxed);
+
         let mut n = Owned::new(CachePadded::new(Node {
             val,
             next: Atomic::null(),
         }));
+
         let g = epoch::pin();
 
         loop {
@@ -90,8 +101,8 @@ impl<T> Stack<T> {
                         .compare_exchange(ptr, next, Ordering::Release, Ordering::Relaxed, &g)
                         .is_ok()
                     {
+                        self.size.fetch_sub(1, Ordering::Relaxed);
                         unsafe {
-                            self.size.fetch_sub(1, Ordering::Relaxed);
                             break Some(ptr::read(&(*head).val));
                         }
                     }
@@ -209,9 +220,11 @@ struct Node<T> {
 
 #[cfg(test)]
 mod tests {
-    extern crate test;
+    extern crate alloc;
     use super::*;
-    use std::sync::Arc;
+    use alloc::sync::Arc;
+    use alloc::vec::Vec;
+
     #[test]
     fn test_stack() {
         let s = Stack::new();
@@ -224,8 +237,10 @@ mod tests {
         assert_eq!(s.pop(), None);
     }
 
-    #[test]
+    #[cfg_attr(feature = "std", test)]
     fn test_multithread_stack() {
+        extern crate std;
+
         let s = Arc::new(Stack::new());
 
         let mut handles = Vec::with_capacity(8);
@@ -255,8 +270,10 @@ mod tests {
         assert_eq!(s.len(), 0);
     }
 
-    #[test]
+    #[cfg_attr(feature = "std", test)]
     fn no_data_corruption() {
+        extern crate std;
+
         const NTHREAD: usize = 20;
         const NITER: usize = 800;
         const NMOD: usize = 55;

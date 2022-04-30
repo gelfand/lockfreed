@@ -3,7 +3,7 @@ edition = "2021"
 name = "lockfreed"
 version = "0.1.0"
 description = "This crate provides concurrent data structures."
-repository = "https://github.com/gelfand/lockless-rs"
+repository = "https://github.com/gelfand/lockfreed"
 keywords = ["concurrency", "lock-free", "atomics", "data-structures"]
 categories = ["concurrency", "data-structures", "algorithms"]
 

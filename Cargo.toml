@@ -1,9 +1,9 @@
 [package]
 edition = "2021"
-name = "lockfree"
+name = "lockfreed"
 version = "0.1.0"
 description = "This crate provides concurrent data structures."
-repository = "https://gitlab.com/gelfand/lockfree"
+repository = "https://github.com/gelfand/lockless-rs"
 keywords = ["concurrency", "lock-free", "atomics", "data-structures"]
 categories = ["concurrency", "data-structures", "algorithms"]
 
@@ -11,8 +11,5 @@ categories = ["concurrency", "data-structures", "algorithms"]
 crossbeam = { git = "https://github.com/crossbeam-rs/crossbeam", features = [
     "nightly",
 ] }
-crossbeam-skiplist = { git = "https://github.com/crossbeam-rs/crossbeam" }
-hashbrown = { git = "https://github.com/rust-lang/hashbrown", features = [
-    "nightly",
-    "raw",
-] }
+
+
